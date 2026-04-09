@@ -376,7 +376,7 @@
     const clearChatBtn = document.getElementById('clearChatBtn');
 
     let isWaitingResponse = false;
-    let currentStreamController = null;
+    let currentEventSource = null;
 
     function getUserId() {
         let val = parseInt(userIdInput.value, 10);
@@ -477,24 +477,10 @@
         sendBtn.disabled = true;
 
         let accumulatedText = '';
-        const abortController = new AbortController();
-        currentStreamController = abortController;
 
         try {
             const encodedMessage = encodeURIComponent(userMessage);
             const streamUrl = `/ai/memory_stream_chat?message=${encodedMessage}&userId=${userId}`;
-
-            const response = await fetch(streamUrl, {
-                method: 'GET',
-                signal: abortController.signal,
-                headers: {
-                    'Accept': 'text/stream, application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
 
             // 清空占位内容
             const placeholderDiv = assistantMessageDiv.querySelector('.message-content');
@@ -502,34 +488,36 @@
                 placeholderDiv.innerHTML = '';
             }
 
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder('utf-8');
+            const es = new EventSource(streamUrl);
+            currentEventSource = es;
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                const chunk = decoder.decode(value, { stream: true });
+            es.onmessage = (event) => {
+                const chunk = event.data ?? '';
                 accumulatedText += chunk;
                 updateStreamingMessage(assistantMessageDiv, accumulatedText);
-            }
+            };
 
-            if (!accumulatedText.trim()) {
-                updateStreamingMessage(assistantMessageDiv, '抱歉，我暂时没有获取到回答，请稍后再试。🌿');
-            }
+            es.onerror = () => {
+                // 连接断开：如果已经有内容，就当作结束；否则显示错误提示
+                es.close();
+                if (!accumulatedText.trim()) {
+                    updateStreamingMessage(assistantMessageDiv, '❌ 网络或服务异常，请检查后端服务是否启动。');
+                }
+                isWaitingResponse = false;
+                sendBtn.disabled = false;
+                currentEventSource = null;
+                messageInput.focus();
+            };
+
+            // 如果服务端会主动 close（SSE 完成），浏览器会触发 onerror；
+            // 所以这里不在 finally 里提前恢复按钮状态。
 
         } catch (error) {
             console.error('流式请求错误:', error);
             let errorMsg = '网络或服务异常，请检查后端服务是否启动。';
-            if (error.name === 'AbortError') {
-                errorMsg = '请求已取消。';
-            }
             updateStreamingMessage(assistantMessageDiv, `❌ ${errorMsg}`);
         } finally {
-            isWaitingResponse = false;
-            sendBtn.disabled = false;
-            currentStreamController = null;
-            messageInput.focus();
+            // 按 SSE 的生命周期，完成/断开会走 onerror 回调来恢复状态
         }
     }
 
@@ -596,8 +584,8 @@
     });
 
     window.addEventListener('beforeunload', () => {
-        if (currentStreamController) {
-            currentStreamController.abort();
+        if (currentEventSource) {
+            currentEventSource.close();
         }
     });
 </script>

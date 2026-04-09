@@ -64,6 +64,13 @@
             <artifactId>langchain4j-community-dashscope</artifactId>
             <version>1.0.0-alpha1</version>
         </dependency>
+
+        <!-- 引入文本向量化操作的包依赖 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-community-dashscope-spring-boot-starter</artifactId>
+            <version>1.0.0-alpha1</version>
+        </dependency>
     </dependencies>
 
     <build>
