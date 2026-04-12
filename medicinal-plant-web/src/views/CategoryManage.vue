@@ -1,6 +1,5 @@
 <template>
-  <div class="category-manage">
-    <Sidebar />
+  <div class="category-page">
     <div class="main-content">
       <div class="page-header">
         <h2>🏷️ 药用植物分类管理</h2>
@@ -263,7 +262,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import Sidebar from '@/components/Sidebar.vue'
 import categoryApi from '@/api/category'
 import speciesApi from '@/api/species'
 
@@ -650,18 +648,15 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.category-manage {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
+.category-page {
+  min-height: 100vh;
 }
 
 .main-content {
-  flex: 1;
-  margin-left: 280px;
   padding: 24px;
   overflow-y: auto;
   background: #f5f7fa;
+  min-height: 100vh;
 }
 
 .page-header {

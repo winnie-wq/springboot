@@ -1,6 +1,5 @@
 <template>
-  <div class="book-manage">
-    <Sidebar />
+  <div class="book-page">
     <div class="main-content">
       <div class="page-header">
         <h2>📚 药用植物知识库资料管理</h2>
@@ -170,7 +169,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import Sidebar from '@/components/Sidebar.vue'
 import { marked } from 'marked'
 import bookApi from '@/api/book'
 
@@ -390,18 +388,15 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.book-manage {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
+.book-page {
+  min-height: 100vh;
 }
 
 .main-content {
-  flex: 1;
-  margin-left: 280px;
   padding: 24px;
   overflow-y: auto;
   background: #f5f7fa;
+  min-height: 100vh;
 }
 
 .page-header {

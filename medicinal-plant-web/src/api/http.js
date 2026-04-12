@@ -1,7 +1,13 @@
+import { getToken } from '@/utils/auth'
+
 export async function request(url, options = {}) {
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
+  }
+  const token = getToken()
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
   }
   const res = await fetch(url, { ...options, headers })
   const text = await res.text()
